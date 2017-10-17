@@ -204,6 +204,8 @@ function setupWebGL() {
       if (gl == null) {
         throw "unable to create gl context -- is your browser gl ready?";
       } else {
+		gl.viewportWidth = canvas.width;
+        gl.viewportHeight = canvas.height;
         gl.clearColor(0.0, 0.0, 0.0, 1.0); // use black when we clear the frame buffer
         gl.clearDepth(1.0); // use max when we clear the depth buffer
         gl.enable(gl.DEPTH_TEST); // use hidden surface removal (with zbuffering)
@@ -398,13 +400,22 @@ function setMatrixUniforms(){
 // render the loaded model
 function renderTriangles() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // clear frame/depth buffers
+	
+	mat4.lookAt(mvMatrix, [0.5, 0.5, -0.5], [0.5, 0.5, 1], [0, 1, 0]);
+    mat4.multiply(mvMatrix, [-1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1], mvMatrix);
+    mat4.perspective(pMatrix, Math.PI / 2, gl.viewportWidth / gl.viewportHeight, 0.5, 100.0);
     
     // vertex buffer: activate and feed into vertex shader
     gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer); // activate
     gl.vertexAttribPointer(vertexPositionAttrib,3,gl.FLOAT,false,0,0); // feed
+	
+	gl.bindBuffer(gl.ARRAY_BUFFER,diffBuffer);
+	gl.vertexAttribPointer(vertexColorAttrib,3,gl.FLOAT,false,0,0);
 
     // triangle buffer: activate and render
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,triangleBuffer); // activate
+	
+	setMatrixUniforms();
     gl.drawElements(gl.TRIANGLES,triBufferSize,gl.UNSIGNED_SHORT,0); // render
 } // end render triangles
 
